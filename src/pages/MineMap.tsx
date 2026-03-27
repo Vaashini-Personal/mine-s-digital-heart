@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { Zone, Worker, Vehicle, Device } from '@/lib/simulation';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Users, Cpu, Wind, TriangleAlert } from 'lucide-react';
+import { Users, Cpu, Wind, TriangleAlert, Box, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+const MineScene3D = lazy(() => import('@/components/MineScene3D'));
 
 interface Props {
   zones: Zone[];
@@ -84,6 +86,7 @@ export default function MineMap({ zones, workers, vehicles, devices }: Props) {
   const [showWorkers, setShowWorkers] = useState(true);
   const [showDevices, setShowDevices] = useState(true);
   const [showAirflow, setShowAirflow] = useState(true);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   const getZoneWorkers = (zoneId: string) => workers.filter(w => w.zone === zoneId);
   const getZoneVehicles = (zoneId: string) => vehicles.filter(v => v.zone === zoneId);
@@ -132,9 +135,25 @@ export default function MineMap({ zones, workers, vehicles, devices }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold font-mono tracking-wide">Mine Map Visualization</h2>
-          <p className="text-xs text-muted-foreground">2D tunnel layout · Sensors, workers &amp; airflow overlay</p>
+          <p className="text-xs text-muted-foreground">{viewMode === '3d' ? '3D isometric view' : '2D tunnel layout'} · Sensors, workers &amp; airflow overlay</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={viewMode === '2d' ? 'default' : 'outline'}
+            onClick={() => setViewMode('2d')}
+            className="text-xs font-mono gap-1.5"
+          >
+            <Map className="h-3.5 w-3.5" /> 2D
+          </Button>
+          <Button
+            size="sm"
+            variant={viewMode === '3d' ? 'default' : 'outline'}
+            onClick={() => setViewMode('3d')}
+            className="text-xs font-mono gap-1.5"
+          >
+            <Box className="h-3.5 w-3.5" /> 3D
+          </Button>
           <Button
             size="sm"
             variant={showWorkers ? 'default' : 'outline'}
@@ -163,157 +182,156 @@ export default function MineMap({ zones, workers, vehicles, devices }: Props) {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
-        {/* SVG Mine Map */}
-        <div className="card-industrial p-2 overflow-hidden" style={{ perspective: '1200px' }}>
-          <div style={{ transform: 'rotateX(8deg) rotateY(-2deg)', transformOrigin: 'center center' }}>
-            <svg
-              viewBox="0 0 1020 560"
-              className="w-full h-auto"
-              style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))' }}
-            >
-              <defs>
-                <linearGradient id="shaftGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.05" />
-                </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                  <feMerge>
-                    <feMergeNode in="coloredBlur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto">
-                  <polygon points="0 0, 6 2, 0 4" fill="hsl(var(--accent))" opacity="0.6" />
-                </marker>
-              </defs>
-
-              {/* Background */}
-              <rect x="0" y="0" width="1020" height="560" rx="8" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1" />
-
-              {/* Shaft columns */}
-              <rect x="50" y="80" width="40" height="450" fill="url(#shaftGrad)" rx="4" stroke="hsl(var(--accent))" strokeWidth="1" strokeOpacity="0.4" />
-              <rect x="920" y="80" width="40" height="450" fill="url(#shaftGrad)" rx="4" stroke="hsl(var(--accent))" strokeWidth="1" strokeOpacity="0.4" />
-
-              {/* Shaft labels */}
-              <text x="70" y="65" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="11" fontFamily="monospace">Shaft A</text>
-              <text x="940" y="65" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="11" fontFamily="monospace">Shaft B</text>
-
-              {/* Level labels */}
-              <text x="350" y="92" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 1 West</text>
-              <text x="780" y="92" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 1 East</text>
-              <text x="500" y="242" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Main Drive</text>
-              <text x="350" y="402" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 2 West</text>
-              <text x="780" y="402" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 2 East</text>
-
-              {/* Airflow paths */}
-              {showAirflow && LAYOUT.airflowPaths.map((path, i) => (
-                <line
-                  key={`airflow-${i}`}
-                  x1={path.from[0]} y1={path.from[1]}
-                  x2={path.to[0]} y2={path.to[1]}
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="1.5"
-                  strokeDasharray="8 4"
-                  strokeOpacity="0.5"
-                  markerEnd="url(#arrowhead)"
-                >
-                  <animate attributeName="stroke-dashoffset" from="24" to="0" dur="2s" repeatCount="indefinite" />
-                </line>
-              ))}
-
-              {/* Zone rectangles */}
-              {LAYOUT.zonePlacements.map(({ idx, x, y, w, h }) => {
-                const zone = zones[idx];
-                if (!zone) return null;
-                const colors = riskColor(zone.riskLevel);
-                const isSelected = selectedZone?.id === zone.id;
-
-                return (
-                  <g key={zone.id} onClick={() => { setSelectedZone(zone); setSelectedDevice(null); }} style={{ cursor: 'pointer' }}>
-                    <rect
-                      x={x} y={y} width={w} height={h} rx="6"
-                      fill={colors.bg}
-                      stroke={isSelected ? 'hsl(var(--accent))' : colors.border}
-                      strokeWidth={isSelected ? 2.5 : 1.5}
-                      strokeOpacity={isSelected ? 1 : 0.6}
-                    />
-                    {/* CO label */}
-                    <rect x={x + w / 2 - 55} y={y + h / 2 - 10} width="110" height="20" rx="10" fill="rgba(0,0,0,0.6)" />
-                    <text x={x + w / 2} y={y + h / 2 + 4} textAnchor="middle" fill={colors.text} fontSize="10" fontFamily="monospace" fontWeight="bold">
-                      CO: {zone.gasLevels.CO.toFixed(1)} ppm
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Workers */}
-              {showWorkers && workers.map(w => {
-                const pos = entityPositions[w.id];
-                if (!pos) return null;
-                return (
-                  <g key={w.id} filter="url(#glow)">
-                    <circle cx={pos.x} cy={pos.y} r="6" fill="#22d3ee" opacity="0.9" />
-                    <circle cx={pos.x} cy={pos.y} r="3" fill="#fff" opacity="0.8" />
-                  </g>
-                );
-              })}
-
-              {/* Vehicles */}
-              {showWorkers && vehicles.map(v => {
-                const pos = entityPositions[v.id];
-                if (!pos) return null;
-                return (
-                  <g key={v.id} filter="url(#glow)">
-                    <circle cx={pos.x} cy={pos.y} r="7" fill="#f97316" opacity="0.9" />
-                    <circle cx={pos.x} cy={pos.y} r="3.5" fill="#fff" opacity="0.7" />
-                  </g>
-                );
-              })}
-
-              {/* Devices */}
-              {showDevices && devices.map(d => {
-                const pos = entityPositions[d.id];
-                if (!pos) return null;
-                return (
-                  <text
-                    key={d.id}
-                    x={pos.x} y={pos.y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fill={deviceColor(d.type)}
-                    fontSize="10"
-                    style={{ cursor: 'pointer' }}
-                    onClick={(e) => { e.stopPropagation(); setSelectedDevice(d); setSelectedZone(null); }}
-                  >
-                    {deviceIcon(d.type)}
-                  </text>
-                );
-              })}
-
-              {/* Legend */}
-              <g transform="translate(180, 530)">
-                <circle cx="0" cy="0" r="5" fill="#22d3ee" />
-                <text x="10" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Worker</text>
-                <circle cx="80" cy="0" r="5" fill="#f97316" />
-                <text x="90" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Vehicle</text>
-                <text x="160" y="4" fill="#f59e0b" fontSize="10" fontFamily="monospace">◆</text>
-                <text x="175" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Gas Sensor</text>
-                <text x="265" y="4" fill="#3b82f6" fontSize="10" fontFamily="monospace">■</text>
-                <text x="280" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Env Sensor</text>
-                <text x="370" y="4" fill="#10b981" fontSize="10" fontFamily="monospace">▲</text>
-                <text x="385" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">BLE Tracker</text>
-                <text x="475" y="4" fill="#a855f7" fontSize="10" fontFamily="monospace">✦</text>
-                <text x="490" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">RFID Reader</text>
-              </g>
-
-              {/* Scale */}
-              <text x="510" y="552" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace" opacity="0.6">
-                ← North · Mine Level -350m · East →
-              </text>
-            </svg>
+        {viewMode === '3d' ? (
+          <div className="card-industrial overflow-hidden" style={{ height: '500px' }}>
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-muted-foreground text-xs font-mono">Loading 3D scene...</div>}>
+              <MineScene3D
+                zones={zones} workers={workers} vehicles={vehicles} devices={devices}
+                selectedZone={selectedZone}
+                onSelectZone={setSelectedZone}
+              />
+            </Suspense>
           </div>
-        </div>
+        ) : (
+          <div className="card-industrial p-2 overflow-hidden" style={{ perspective: '1200px' }}>
+            <div style={{ transform: 'rotateX(8deg) rotateY(-2deg)', transformOrigin: 'center center' }}>
+              <svg
+                viewBox="0 0 1020 560"
+                className="w-full h-auto"
+                style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))' }}
+              >
+                <defs>
+                  <linearGradient id="shaftGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.05" />
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="hsl(var(--accent))" opacity="0.6" />
+                  </marker>
+                </defs>
+
+                <rect x="0" y="0" width="1020" height="560" rx="8" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1" />
+
+                <rect x="50" y="80" width="40" height="450" fill="url(#shaftGrad)" rx="4" stroke="hsl(var(--accent))" strokeWidth="1" strokeOpacity="0.4" />
+                <rect x="920" y="80" width="40" height="450" fill="url(#shaftGrad)" rx="4" stroke="hsl(var(--accent))" strokeWidth="1" strokeOpacity="0.4" />
+
+                <text x="70" y="65" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="11" fontFamily="monospace">Shaft A</text>
+                <text x="940" y="65" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="11" fontFamily="monospace">Shaft B</text>
+
+                <text x="350" y="92" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 1 West</text>
+                <text x="780" y="92" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 1 East</text>
+                <text x="500" y="242" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Main Drive</text>
+                <text x="350" y="402" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 2 West</text>
+                <text x="780" y="402" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10" fontFamily="monospace" opacity="0.7">Level 2 East</text>
+
+                {showAirflow && LAYOUT.airflowPaths.map((path, i) => (
+                  <line
+                    key={`airflow-${i}`}
+                    x1={path.from[0]} y1={path.from[1]}
+                    x2={path.to[0]} y2={path.to[1]}
+                    stroke="hsl(var(--accent))"
+                    strokeWidth="1.5"
+                    strokeDasharray="8 4"
+                    strokeOpacity="0.5"
+                    markerEnd="url(#arrowhead)"
+                  >
+                    <animate attributeName="stroke-dashoffset" from="24" to="0" dur="2s" repeatCount="indefinite" />
+                  </line>
+                ))}
+
+                {LAYOUT.zonePlacements.map(({ idx, x, y, w, h }) => {
+                  const zone = zones[idx];
+                  if (!zone) return null;
+                  const colors = riskColor(zone.riskLevel);
+                  const isSelected = selectedZone?.id === zone.id;
+
+                  return (
+                    <g key={zone.id} onClick={() => { setSelectedZone(zone); setSelectedDevice(null); }} style={{ cursor: 'pointer' }}>
+                      <rect
+                        x={x} y={y} width={w} height={h} rx="6"
+                        fill={colors.bg}
+                        stroke={isSelected ? 'hsl(var(--accent))' : colors.border}
+                        strokeWidth={isSelected ? 2.5 : 1.5}
+                        strokeOpacity={isSelected ? 1 : 0.6}
+                      />
+                      <rect x={x + w / 2 - 55} y={y + h / 2 - 10} width="110" height="20" rx="10" fill="rgba(0,0,0,0.6)" />
+                      <text x={x + w / 2} y={y + h / 2 + 4} textAnchor="middle" fill={colors.text} fontSize="10" fontFamily="monospace" fontWeight="bold">
+                        CO: {zone.gasLevels.CO.toFixed(1)} ppm
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {showWorkers && workers.map(w => {
+                  const pos = entityPositions[w.id];
+                  if (!pos) return null;
+                  return (
+                    <g key={w.id} filter="url(#glow)">
+                      <circle cx={pos.x} cy={pos.y} r="6" fill="#22d3ee" opacity="0.9" />
+                      <circle cx={pos.x} cy={pos.y} r="3" fill="#fff" opacity="0.8" />
+                    </g>
+                  );
+                })}
+
+                {showWorkers && vehicles.map(v => {
+                  const pos = entityPositions[v.id];
+                  if (!pos) return null;
+                  return (
+                    <g key={v.id} filter="url(#glow)">
+                      <circle cx={pos.x} cy={pos.y} r="7" fill="#f97316" opacity="0.9" />
+                      <circle cx={pos.x} cy={pos.y} r="3.5" fill="#fff" opacity="0.7" />
+                    </g>
+                  );
+                })}
+
+                {showDevices && devices.map(d => {
+                  const pos = entityPositions[d.id];
+                  if (!pos) return null;
+                  return (
+                    <text
+                      key={d.id}
+                      x={pos.x} y={pos.y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill={deviceColor(d.type)}
+                      fontSize="10"
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); setSelectedDevice(d); setSelectedZone(null); }}
+                    >
+                      {deviceIcon(d.type)}
+                    </text>
+                  );
+                })}
+
+                <g transform="translate(180, 530)">
+                  <circle cx="0" cy="0" r="5" fill="#22d3ee" />
+                  <text x="10" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Worker</text>
+                  <circle cx="80" cy="0" r="5" fill="#f97316" />
+                  <text x="90" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Vehicle</text>
+                  <text x="160" y="4" fill="#f59e0b" fontSize="10" fontFamily="monospace">◆</text>
+                  <text x="175" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Gas Sensor</text>
+                  <text x="265" y="4" fill="#3b82f6" fontSize="10" fontFamily="monospace">■</text>
+                  <text x="280" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">Env Sensor</text>
+                  <text x="370" y="4" fill="#10b981" fontSize="10" fontFamily="monospace">▲</text>
+                  <text x="385" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">BLE Tracker</text>
+                  <text x="475" y="4" fill="#a855f7" fontSize="10" fontFamily="monospace">✦</text>
+                  <text x="490" y="4" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace">RFID Reader</text>
+                </g>
+
+                <text x="510" y="552" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="9" fontFamily="monospace" opacity="0.6">
+                  ← North · Mine Level -350m · East →
+                </text>
+              </svg>
+            </div>
+          </div>
+        )}
 
         {/* Detail Panel */}
         <div className="space-y-4">
