@@ -86,6 +86,7 @@ export default function MineMap({ zones, workers, vehicles, devices }: Props) {
   const [showWorkers, setShowWorkers] = useState(true);
   const [showDevices, setShowDevices] = useState(true);
   const [showAirflow, setShowAirflow] = useState(true);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
   const getZoneWorkers = (zoneId: string) => workers.filter(w => w.zone === zoneId);
   const getZoneVehicles = (zoneId: string) => vehicles.filter(v => v.zone === zoneId);
