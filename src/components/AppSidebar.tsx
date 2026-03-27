@@ -37,7 +37,7 @@ export function AppSidebar() {
           </div>
         </div>
 
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
