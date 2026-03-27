@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { Zone, Worker, Vehicle, Device } from '@/lib/simulation';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Users, Cpu, Wind, TriangleAlert } from 'lucide-react';
+import { Users, Cpu, Wind, TriangleAlert, Box, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+const MineScene3D = lazy(() => import('@/components/MineScene3D'));
 
 interface Props {
   zones: Zone[];
