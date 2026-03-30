@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Box, Cpu, Map, Users, Fan, AlertTriangle, Zap, BrainCircuit, Truck, HeartPulse
+  LayoutDashboard, Box, Cpu, Map, Users, Fan, AlertTriangle, Zap, BrainCircuit, Truck, HeartPulse, FileText
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import {
