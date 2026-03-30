@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Box, Cpu, Map, Users, Fan, AlertTriangle, Zap, BrainCircuit, Truck, HeartPulse, FileText
 } from 'lucide-react';
+import spritleLogo from '@/assets/spritle-logo.png';
 import { NavLink } from '@/components/NavLink';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
