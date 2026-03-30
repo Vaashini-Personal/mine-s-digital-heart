@@ -301,7 +301,6 @@ export default function MineMap({ zones, workers, vehicles, devices }: Props) {
               </svg>
             </div>
           </div>
-        )}
 
         {/* Detail Panel */}
         <div className="space-y-4">
