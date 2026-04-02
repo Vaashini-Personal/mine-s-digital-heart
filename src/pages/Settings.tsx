@@ -65,12 +65,6 @@ function DevicesTab() {
               <SelectContent><SelectItem value="5">5 seconds</SelectItem><SelectItem value="10">10 seconds</SelectItem><SelectItem value="30">30 seconds</SelectItem><SelectItem value="60">60 seconds</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Data Protocol</Label>
-            <Select defaultValue="mqtt"><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="mqtt">MQTT</SelectItem><SelectItem value="http">HTTP REST</SelectItem><SelectItem value="coap">CoAP</SelectItem></SelectContent>
-            </Select>
-          </div>
         </div>
         <Separator />
         <SettingRow label="Auto-Discovery" description="Automatically detect new IoT devices on the network."><Switch defaultChecked /></SettingRow>
