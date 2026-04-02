@@ -209,36 +209,7 @@ function AlertsTab() {
   );
 }
 
-function IntegrationsTab() {
-  return (
-    <div className="space-y-4">
-      <SectionCard title="IoT Gateway" description="Configure connections to IoT gateways.">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Gateway IP Address</Label><Input defaultValue="192.168.1.100" /></div>
-          <div className="space-y-2"><Label>Port</Label><Input defaultValue="1883" /></div>
-          <div className="space-y-2"><Label>Protocol</Label>
-            <Select defaultValue="mqtt"><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="mqtt">MQTT</SelectItem><SelectItem value="amqp">AMQP</SelectItem><SelectItem value="http">HTTP</SelectItem></SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2"><Label>Client ID</Label><Input defaultValue="smartmine-vod-01" /></div>
-        </div>
-      </SectionCard>
-      <SectionCard title="SCADA Integration" description="Configure SCADA system API endpoints.">
-        <div className="space-y-3">
-          <div className="space-y-2"><Label>SCADA API Endpoint</Label><Input defaultValue="https://scada.mine.local/api/v2" /></div>
-          <div className="space-y-2"><Label>API Key</Label><Input type="password" defaultValue="sk-xxxx-xxxx-xxxx" /></div>
-          <SettingRow label="SCADA Sync Enabled" description="Enable real-time data sync with SCADA system."><Switch defaultChecked /></SettingRow>
-        </div>
-      </SectionCard>
-      <SectionCard title="Communication Protocols" description="Enable/disable communication protocols.">
-        {[{ name: 'LoRaWAN', desc: 'Long-range low-power WAN', icon: Radio, on: true }, { name: 'Wi-Fi', desc: 'Standard wireless', icon: Wifi, on: true }, { name: 'BLE', desc: 'Bluetooth Low Energy', icon: Smartphone, on: true }, { name: 'Zigbee', desc: 'Mesh networking', icon: Radio, on: false }].map((p, i) => (
-          <SettingRow key={i} label={p.name} description={p.desc}><Switch defaultChecked={p.on} /></SettingRow>
-        ))}
-      </SectionCard>
-    </div>
-  );
-}
+
 
 function DataSystemTab() {
   return (
