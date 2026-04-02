@@ -19,17 +19,11 @@ import { toast } from 'sonner';
 /* ─── mock data ─── */
 
 const tabItems = [
-  { value: 'users', label: 'Users & Roles', icon: Users },
-  { value: 'mine', label: 'Mine Config', icon: Mountain },
   { value: 'devices', label: 'Devices', icon: Cpu },
   { value: 'ventilation', label: 'Ventilation', icon: Fan },
-  { value: 'twin', label: 'Digital Twin', icon: Box },
   { value: 'fleet', label: 'Fleet & Workers', icon: Truck },
   { value: 'alerts', label: 'Alerts', icon: Bell },
-  { value: 'integrations', label: 'Integrations', icon: Plug },
   { value: 'data', label: 'Data & System', icon: Database },
-  { value: 'security', label: 'Security', icon: Shield },
-  { value: 'ui', label: 'UI Preferences', icon: Palette },
 ];
 
 function SectionCard({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
