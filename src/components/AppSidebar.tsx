@@ -41,6 +41,12 @@ const navGroups = [
       { title: 'Reports', url: '/reports', icon: FileText },
     ],
   },
+  {
+    label: 'SYSTEM',
+    items: [
+      { title: 'Settings', url: '/settings', icon: Settings },
+    ],
+  },
 ];
 
 interface Props {
